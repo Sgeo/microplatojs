@@ -1,6 +1,10 @@
-# platotermjs
+# microplatojs
 
-This is a version of PLATOTERM that has been ported to JavaScript by way of the emscripten (http://emscripten.org/) project. It connects to an existing CYBIS installation via a WebSockets proxy.
+This is a version of PLATOTERM that has been ported to JavaScript by way of the emscripten (http://emscripten.org/) project. It uses portions of PTerm for Z80 emulation and Microtutor execution.
+
+## License
+
+This project uses code derived from PTerm. The license is available at pterm-license.txt.
 
 ## Demo
 
