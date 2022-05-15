@@ -7,8 +7,11 @@
 // Licence:     see pterm-license.txt
 /////////////////////////////////////////////////////////////////////////////
 
-#include "PtermApp.h"
+#include <string>
+#include <iostream>
 #include "MTFile.h"
+
+
 
 // For GTK (Linux) the Microtutor floppy image for help is compiled in
 // as initial content of this array; for Windows and Mac is it read
@@ -22,7 +25,7 @@ static bool mtimage_loaded = false;
 
 MTFile::MTFile()
 {
-    rwflag = wxT ("  ");
+    std::string rwflag = "  ";
 
 #ifdef _WIN32
     ms_handle = NULL;
@@ -36,32 +39,32 @@ MTFile::MTFile()
     _RamBased = false;
 }
 
-void MTFile::SetRamBased (const char *fn)
-{
-#if !defined (__WXGTK__)
-    if (!mtimage_loaded)
-    {
-        wxFileName filename (ptermApp->m_resourcedir, fn);
-        FILE *f;
-        int i;
+// void MTFile::SetRamBased (const char *fn)
+// {
+// #if !defined (__WXGTK__)
+//     if (!mtimage_loaded)
+//     {
+//         std::string filename (ptermApp->m_resourcedir, fn);
+//         FILE *f;
+//         int i;
         
-        f = fopen (filename.GetFullPath (), "rb");
-        if (f != NULL)
-        {
-            i = fread (MTIMAGE, 1, sizeof (MTIMAGE), f);
-            if (i != sizeof (MTIMAGE))
-            {
-                perror ("help floppy image read");
-                fprintf (stderr, "expected %ld bytes, got %d bytes\n",
-                         sizeof (MTIMAGE), i);
-            }
-            fclose (f);
-        }
-    }
-#endif
-    mtimage_loaded = true;
-    _RamBased = true;
-}
+//         f = fopen (filename.GetFullPath (), "rb");
+//         if (f != NULL)
+//         {
+//             i = fread (MTIMAGE, 1, sizeof (MTIMAGE), f);
+//             if (i != sizeof (MTIMAGE))
+//             {
+//                 perror ("help floppy image read");
+//                 fprintf (stderr, "expected %ld bytes, got %d bytes\n",
+//                          sizeof (MTIMAGE), i);
+//             }
+//             fclose (f);
+//         }
+//     }
+// #endif
+//     mtimage_loaded = true;
+//     _RamBased = true;
+// }
 
 bool MTFile::Open(const char *fn)
 {
@@ -104,12 +107,7 @@ bool MTFile::Open(const char *fn)
 
 bool MTFile::reportError(const char *fn)
 {
-    wxString msg(_(L"Error opening \u00b5Tutor floppy file "));
-    msg.Append(fn);
-    msg.Append(":\n");
-    msg.Append(wxSysErrorMsg());
-
-    wxMessageBox(msg, "Floppy error", wxICON_ERROR | wxOK | wxCENTRE);
+    std::cerr << "Error opening \u00b5Tutor floppy file " << fn << "\n";
     return false;
 }
 
@@ -183,7 +181,7 @@ void MTFile::ReadReset (void)
 {
     rcnt = 1;
     _chkSum = 0;
-    rwflag = wxT ("R ");
+    rwflag = "R ";
 
 }
 
@@ -270,7 +268,7 @@ u8 MTFile::ReadByte()
 void MTFile::WriteReset (void)
 {
     wcnt = 1;
-    rwflag = wxT ("W ");
+    rwflag = "W ";
 }
 
 void MTFile::WriteByte(u8 val)
@@ -335,7 +333,7 @@ void MTFile::Format (void)
 {
     if (_RamBased)
         return;
-    rwflag = wxT ("W ");
+    rwflag = "W ";
     Seek (0);
     long int i;
     for (i = 0; i < (128L * 64L * 154L); i++)
