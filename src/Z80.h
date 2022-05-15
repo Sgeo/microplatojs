@@ -5,6 +5,8 @@
 #include "z80user.h"
 #include "z80config.h"
 
+#include <stdio.h>
+
 /*  Memory Map  */
 
 #define WORKRAM   0x02000
