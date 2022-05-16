@@ -1,5 +1,11 @@
 #include "microplato.h"
 
+MicroPLATO::MicroPLATO() :
+      m_mtincnt (0),
+      m_mtdrivetemp (0xcb),
+      m_mtdrivefunc (0),
+      m_clockPhase (true) {}
+
 /*******************************************************************************
 
 inputz80:

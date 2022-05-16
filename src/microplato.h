@@ -5,6 +5,7 @@
 typedef unsigned char u8;
 typedef short u16;
 class MicroPLATO : Z80 {
+    MicroPLATO();
     // z80 emulation support
     unsigned char inputZ80(unsigned char data);
     void outputZ80(unsigned char data, unsigned char acc);
