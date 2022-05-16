@@ -145,8 +145,191 @@ unsigned char MicroPLATO::inputZ80(unsigned char data)
     ***********************************************************************/
     return retval;
 }
-void MicroPLATO::outputZ80(unsigned char data, unsigned char acc) {
+/*******************************************************************************
 
+outputz80:
+-----------
+
+   This case switches on the contents of the data.  If the content of data is
+equal to 2, ...
+If the content of data is any other value, then the request is bad and 
+debugging information is printed to STDOUT.
+
+
+Input:
+-----
+
+   data - This variable is the byte after the OUTp instruction, RAM[PC].
+   acc - This variable is the accumulator, which is the z80's A register.
+
+
+Note:
+----
+
+   This function is called directly by Z80::emulate.
+
+*******************************************************************************/
+void MicroPLATO::outputZ80(u8 data, u8 acc)
+{
+    u8 comp = ~acc;
+    bool ok = comp == m_mtdrivetemp;
+
+    //printf("out: %02x, %02x\n", data, acc);
+
+    switch (data)
+    {
+
+    /***********************************************************************
+    *   If the value of the z80's memory, RAM[PC], is equal to 2, the
+    * content of the A register is moved into the left shift amount.
+    ***********************************************************************/
+        case 2:
+        // below used by mtutor 
+        case 0x2b:
+            break;
+
+        case 0xab:  // new in level 4
+
+            break;
+
+        case 0xae:      // CDC drive data port
+            switch (m_mtdrivefunc)
+            {
+            case 0: // read disk
+            case 2: // write data to disk - and recieve setup data
+                //if (m_mtdrivefunc == 10)
+                //    printf("CDC drive DATA WRITE");
+                switch (m_mtDataPhase++)
+                {
+                    case 1:
+                        m_mtDiskUnit = acc;
+                        break;
+                    case 2:
+                        m_mtDiskTrack = acc;
+                        break;
+                    case 3:
+                        m_mtDiskSector = acc;
+                        break;
+                    case 4:
+                        m_mtDisk1 = acc;
+                        break;
+                    case 5:
+                        m_mtDisk2 = acc;
+                        break;
+                    case 6:
+                        m_mtDiskCheck1 = acc;
+                        break;
+                    case 7: // 128 bytes/sector plus two check bytes
+                        m_mtDiskCheck2 = acc;
+
+                        m_mtSeekPos = (128 * 64 * m_mtDiskTrack) + (128 * (m_mtDiskSector-1));
+                        if (m_mtSeekPos < 0)
+                            break;
+                        m_MTFiles[m_mtDiskUnit&1].Seek(m_mtSeekPos);
+                        break;
+
+                    default:   // write data
+                        m_MTFiles[m_mtDiskUnit&1].WriteByte(acc);
+                        m_mtcanresp = 0x50;
+                        break;
+                }
+                break;
+
+            case 10: // format
+                switch (m_mtDataPhase++)
+                {
+                case 1:
+                    m_mtDiskUnit = acc;
+                    break;
+                case 2:
+                    m_mtDiskTrack = acc;
+                    break;
+                case 3:
+                    m_mtDiskSector = acc;
+                    break;
+                case 4:
+                    m_mtDisk1 = acc;
+                    break;
+                case 5:
+                    m_mtDisk2 = acc;
+                    //break;
+                default:
+                    m_MTFiles[m_mtDiskUnit & 1].Format();
+                    break;
+                }
+                break;
+
+            //case 11:
+            //    // read millisec clock - noop
+            //break;
+
+            //case 4:  // noop
+            //case 8:  // d.clear - noop
+            //    break;
+
+            default:
+                break;
+
+            }
+            //printf("CDC drive DATA recieving for: %02x  data:  %02x\n", m_mtdrivefunc, acc);
+            break;
+
+        case 0xaf:      // CDC drive control port
+            if (ok)     // accept function
+            {
+                m_mtdrivefunc = m_mtdrivetemp;
+                m_mtdrivetemp = 0xcb;
+                m_mtDataPhase = 1;
+
+                switch(m_mtdrivefunc)
+                {
+                case 0:
+                case 2:
+                case 10:
+                case 11:
+                    m_mtcanresp = 0x4a;
+                    m_clockPhase = true;
+                    break;
+
+                case 4:
+                    m_mtcanresp = 0x4a;
+                    m_mtsingledata = 0x02;
+                    if (m_floppy1)
+                    {
+                        m_mtsingledata |= 0x80;
+                    }
+                    break;
+
+                case 8:
+                    m_mtcanresp = 0x50;
+                    break;
+
+                default:
+                    m_mtsingledata = 2;  // remove me
+                    break;
+                }
+                //printf("CDC drive control accept: %02x\n", m_mtdrivefunc);
+            }
+            else
+            {
+                m_mtdrivetemp = acc; // set function
+                //printf("CDC drive control command: %02x\n", m_mtdrivetemp);
+                m_mtcanresp = 0x48;
+            }
+            
+            break;
+
+
+    /***********************************************************************
+    *   If the value of the z80's memory, RAM[PC], is not equal to any of
+    * the above cases, then the program requested bad output data.  Debug
+    * information containing the value of the data and the accumulator are
+    * printed to STDOUT.
+    ***********************************************************************/
+        default:
+            printf ("OUTp BAD -> Data = %d   A = %d\n", data, acc);
+            break;
+    }
 }
 int MicroPLATO::check_pcZ80(void) {
     return 0;

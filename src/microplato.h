@@ -29,5 +29,6 @@ class MicroPLATO : Z80 {
     u8          m_mtDiskCheck2;
     int         m_mtSeekPos;
     bool        m_clockPhase;   // lower or upper byte of clock
+    bool        m_floppy1;
 };
 #endif
