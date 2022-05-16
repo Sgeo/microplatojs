@@ -182,11 +182,11 @@ void Z80::Z80Reset ()
 {
     int     i;
 
-    state->status = 0;
+    z80_state->status = 0;
     AF = 0xffff;
     SP = 0xffff;
-    state->i = state->pc = state->iff1 = state->iff2 = 0;
-    state->im = Z80_INTERRUPT_MODE_0;
+    z80_state->i = z80_state->pc = z80_state->iff1 = z80_state->iff2 = 0;
+    z80_state->im = Z80_INTERRUPT_MODE_0;
 
     /* Build register decoding tables for both 3-bit encoded 8-bit
     * registers and 2-bit encoded 16-bit registers. When an opcode is
@@ -196,67 +196,67 @@ void Z80::Z80Reset ()
 
     /* 8-bit "R" registers. */
 
-    state->register_table[0] = &state->registers.byte[Z80_B];
-    state->register_table[1] = &state->registers.byte[Z80_C];
-    state->register_table[2] = &state->registers.byte[Z80_D];
-    state->register_table[3] = &state->registers.byte[Z80_E];
-    state->register_table[4] = &state->registers.byte[Z80_H];
-    state->register_table[5] = &state->registers.byte[Z80_L];
+    z80_state->register_table[0] = &z80_state->registers.byte[Z80_B];
+    z80_state->register_table[1] = &z80_state->registers.byte[Z80_C];
+    z80_state->register_table[2] = &z80_state->registers.byte[Z80_D];
+    z80_state->register_table[3] = &z80_state->registers.byte[Z80_E];
+    z80_state->register_table[4] = &z80_state->registers.byte[Z80_H];
+    z80_state->register_table[5] = &z80_state->registers.byte[Z80_L];
 
     /* Encoding 0x06 is used for indexed memory operands and direct HL or
     * IX/IY register access.
     */
 
-    state->register_table[6] = &state->registers.word[Z80_HL];
-    state->register_table[7] = &state->registers.byte[Z80_A];
+    z80_state->register_table[6] = &z80_state->registers.word[Z80_HL];
+    z80_state->register_table[7] = &z80_state->registers.byte[Z80_A];
 
     /* "Regular" 16-bit "RR" registers. */
 
-    state->register_table[8] = &state->registers.word[Z80_BC];
-    state->register_table[9] = &state->registers.word[Z80_DE];
-    state->register_table[10] = &state->registers.word[Z80_HL];
-    state->register_table[11] = &state->registers.word[Z80_SP];
+    z80_state->register_table[8] = &z80_state->registers.word[Z80_BC];
+    z80_state->register_table[9] = &z80_state->registers.word[Z80_DE];
+    z80_state->register_table[10] = &z80_state->registers.word[Z80_HL];
+    z80_state->register_table[11] = &z80_state->registers.word[Z80_SP];
 
     /* 16-bit "SS" registers for PUSH and POP instructions (note that SP is
     * replaced by AF).
     */
 
-    state->register_table[12] = &state->registers.word[Z80_BC];
-    state->register_table[13] = &state->registers.word[Z80_DE];
-    state->register_table[14] = &state->registers.word[Z80_HL];
-    state->register_table[15] = &state->registers.word[Z80_AF];
+    z80_state->register_table[12] = &z80_state->registers.word[Z80_BC];
+    z80_state->register_table[13] = &z80_state->registers.word[Z80_DE];
+    z80_state->register_table[14] = &z80_state->registers.word[Z80_HL];
+    z80_state->register_table[15] = &z80_state->registers.word[Z80_AF];
 
     /* 0xdd and 0xfd prefixed register decoding tables. */
 
     for (i = 0; i < 16; i++)
 
-        state->dd_register_table[i]
-        = state->fd_register_table[i]
-        = state->register_table[i];
+        z80_state->dd_register_table[i]
+        = z80_state->fd_register_table[i]
+        = z80_state->register_table[i];
 
-    state->dd_register_table[4] = &state->registers.byte[Z80_IXH];
-    state->dd_register_table[5] = &state->registers.byte[Z80_IXL];
-    state->dd_register_table[6] = &state->registers.word[Z80_IX];
-    state->dd_register_table[10] = &state->registers.word[Z80_IX];
-    state->dd_register_table[14] = &state->registers.word[Z80_IX];
+    z80_state->dd_register_table[4] = &z80_state->registers.byte[Z80_IXH];
+    z80_state->dd_register_table[5] = &z80_state->registers.byte[Z80_IXL];
+    z80_state->dd_register_table[6] = &z80_state->registers.word[Z80_IX];
+    z80_state->dd_register_table[10] = &z80_state->registers.word[Z80_IX];
+    z80_state->dd_register_table[14] = &z80_state->registers.word[Z80_IX];
 
-    state->fd_register_table[4] = &state->registers.byte[Z80_IYH];
-    state->fd_register_table[5] = &state->registers.byte[Z80_IYL];
-    state->fd_register_table[6] = &state->registers.word[Z80_IY];
-    state->fd_register_table[10] = &state->registers.word[Z80_IY];
-    state->fd_register_table[14] = &state->registers.word[Z80_IY];
+    z80_state->fd_register_table[4] = &z80_state->registers.byte[Z80_IYH];
+    z80_state->fd_register_table[5] = &z80_state->registers.byte[Z80_IYL];
+    z80_state->fd_register_table[6] = &z80_state->registers.word[Z80_IY];
+    z80_state->fd_register_table[10] = &z80_state->registers.word[Z80_IY];
+    z80_state->fd_register_table[14] = &z80_state->registers.word[Z80_IY];
 }
 
 int Z80::Z80Interrupt (int data_on_bus)
 {
     ZEXTEST *context = &m_context;
 
-    state->status = 0;
-    if (state->iff1) {
+    z80_state->status = 0;
+    if (z80_state->iff1) {
 
-        state->iff1 = state->iff2 = 0;
-        state->r = (state->r & 0x80) | ((state->r + 1) & 0x7f);
-        switch (state->im) {
+        z80_state->iff1 = z80_state->iff2 = 0;
+        z80_state->r = (z80_state->r & 0x80) | ((z80_state->r + 1) & 0x7f);
+        switch (z80_state->im) {
 
         case Z80_INTERRUPT_MODE_0: {
 
@@ -277,8 +277,8 @@ int Z80::Z80Interrupt (int data_on_bus)
 
             elapsed_cycles = 0;
             SP -= 2;
-            Z80_WRITE_WORD_INTERRUPT (SP, state->pc);
-            state->pc = 0x0038;
+            Z80_WRITE_WORD_INTERRUPT (SP, z80_state->pc);
+            z80_state->pc = 0x0038;
             return elapsed_cycles + 13;
 
         }
@@ -290,8 +290,8 @@ int Z80::Z80Interrupt (int data_on_bus)
 
             elapsed_cycles = 0;
             SP -= 2;
-            Z80_WRITE_WORD_INTERRUPT (SP, state->pc);
-            vector = state->i << 8 | data_on_bus;
+            Z80_WRITE_WORD_INTERRUPT (SP, z80_state->pc);
+            vector = z80_state->i << 8 | data_on_bus;
 
 #ifdef Z80_MASK_IM2_VECTOR_ADDRESS
 
@@ -299,7 +299,7 @@ int Z80::Z80Interrupt (int data_on_bus)
 
 #endif
 
-            Z80_READ_WORD_INTERRUPT (vector, state->pc);
+            Z80_READ_WORD_INTERRUPT (vector, z80_state->pc);
             return elapsed_cycles + 19;
 
         }
@@ -318,16 +318,16 @@ int Z80::Z80NonMaskableInterrupt ()
 
     int	elapsed_cycles;
 
-    state->status = 0;
+    z80_state->status = 0;
 
-    state->iff2 = state->iff1;
-    state->iff1 = 0;
-    state->r = (state->r & 0x80) | ((state->r + 1) & 0x7f);
+    z80_state->iff2 = z80_state->iff1;
+    z80_state->iff1 = 0;
+    z80_state->r = (z80_state->r & 0x80) | ((z80_state->r + 1) & 0x7f);
 
     elapsed_cycles = 0;
     SP -= 2;
-    Z80_WRITE_WORD_INTERRUPT (SP, state->pc);
-    state->pc = 0x0066;
+    Z80_WRITE_WORD_INTERRUPT (SP, z80_state->pc);
+    z80_state->pc = 0x0066;
 
     return elapsed_cycles + 11;
 }
@@ -358,12 +358,12 @@ int Z80::Z80Emulate (int number_cycles)
 
     int     elapsed_cycles, pc, opcode;
 
-    state->status = 0;
+    z80_state->status = 0;
     elapsed_cycles = 0;
-    pc = state->pc;
+    pc = z80_state->pc;
 
     Z80_FETCH_BYTE (pc, opcode);
-    state->pc = pc + 1;
+    z80_state->pc = pc + 1;
 
     ppt_running = true;
 
@@ -380,22 +380,22 @@ bool Z80::Z80BreakPoint (int pc, bool step)
     // GPK: ... but cast them to void because other compilers complain
     //          of expression result being unused otherwise.
 
-    unsigned short myBC = state->registers.word[Z80_BC];
-    unsigned short myDE = state->registers.word[Z80_DE];
-    unsigned short myHL = state->registers.word[Z80_HL];
-    unsigned short myAF = state->registers.word[Z80_AF];
-    unsigned short mySP = state->registers.word[Z80_SP];
-    unsigned short myIX = state->registers.word[Z80_IX];
-    unsigned short myIY = state->registers.word[Z80_IY];
+    unsigned short myBC = z80_state->registers.word[Z80_BC];
+    unsigned short myDE = z80_state->registers.word[Z80_DE];
+    unsigned short myHL = z80_state->registers.word[Z80_HL];
+    unsigned short myAF = z80_state->registers.word[Z80_AF];
+    unsigned short mySP = z80_state->registers.word[Z80_SP];
+    unsigned short myIX = z80_state->registers.word[Z80_IX];
+    unsigned short myIY = z80_state->registers.word[Z80_IY];
 
-    unsigned char myA = state->registers.byte[Z80_A];
-    unsigned char myF = state->registers.byte[Z80_F];
-    unsigned char myB = state->registers.byte[Z80_B];
-    unsigned char myC = state->registers.byte[Z80_C];
-    unsigned char myD = state->registers.byte[Z80_D];
-    unsigned char myE = state->registers.byte[Z80_E];
-    unsigned char myH = state->registers.byte[Z80_H];
-    unsigned char myL = state->registers.byte[Z80_L];
+    unsigned char myA = z80_state->registers.byte[Z80_A];
+    unsigned char myF = z80_state->registers.byte[Z80_F];
+    unsigned char myB = z80_state->registers.byte[Z80_B];
+    unsigned char myC = z80_state->registers.byte[Z80_C];
+    unsigned char myD = z80_state->registers.byte[Z80_D];
+    unsigned char myE = z80_state->registers.byte[Z80_E];
+    unsigned char myH = z80_state->registers.byte[Z80_H];
+    unsigned char myL = z80_state->registers.byte[Z80_L];
 
     (void) myBC;
     (void) myDE;
@@ -434,8 +434,8 @@ int Z80::emulate (
 
     int	pc, r;
 
-    pc = state->pc;
-    r = state->r & 0x7f;
+    pc = z80_state->pc;
+    r = z80_state->r & 0x7f;
     goto start_emulation;
 
     for (; ; ) {
@@ -448,7 +448,7 @@ int Z80::emulate (
 
     start_emulation:
 
-        registers = state->register_table;
+        registers = z80_state->register_table;
 
     emulate_next_opcode:
 
@@ -473,7 +473,7 @@ int Z80::emulate (
         if (pc > 0x60b8 && pc < 0x60df)
         {
             printf ("\n\nOPCODE-[0x%X]\tINTSTRUCTION-[0x%X]\tPC-[0x%X]\tSP-[0x%X]\t"
-                "PSW-[0x%X]\n", opcode, instruction, pc, SP, state->registers.byte[Z80_F]);
+                "PSW-[0x%X]\n", opcode, instruction, pc, SP, z80_state->registers.byte[Z80_F]);
             printf ("A-[0x%X] \tB/C-[0x%X/0x%X]\tD/E-[0x%X/0x%X]\t"
                 "H/L-[0x%X/0x%X]\n", A, B, C, D,
                 E, H, L);
@@ -546,7 +546,7 @@ int Z80::emulate (
 
         case LD_R_INDIRECT_HL: {
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, R (Y (opcode)));
 
@@ -568,7 +568,7 @@ int Z80::emulate (
 
         case LD_INDIRECT_HL_R: {
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 WRITE_BYTE (HL, R (Z (opcode)));
 
@@ -592,7 +592,7 @@ int Z80::emulate (
 
             int     n;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_N (n);
                 WRITE_BYTE (HL, n);
@@ -668,8 +668,8 @@ int Z80::emulate (
             int     a, f;
 
             a = opcode == OPCODE_LD_A_I
-                ? state->i
-                : (state->r & 0x80) | (r & 0x7f);
+                ? z80_state->i
+                : (z80_state->r & 0x80) | (r & 0x7f);
             f = SZYX_FLAGS_TABLE[a];
 
             /* Note: On a real processor, if an interrupt
@@ -678,7 +678,7 @@ int Z80::emulate (
             * reset. That can never happen here.
             */
 
-            f |= state->iff2 << Z80_P_FLAG_SHIFT;
+            f |= z80_state->iff2 << Z80_P_FLAG_SHIFT;
             f |= F & Z80_C_FLAG;
 
             AF = (unsigned short)((a << 8) | f);
@@ -693,11 +693,11 @@ int Z80::emulate (
 
             if (opcode == OPCODE_LD_I_A)
 
-                state->i = A;
+                z80_state->i = A;
 
             else {
 
-                state->r = A;
+                z80_state->r = A;
                 r = A & 0x7f;
 
             }
@@ -791,16 +791,16 @@ int Z80::emulate (
 
         case EX_AF_AF_PRIME: {
 
-            EXCHANGE (AF, state->alternates[Z80_AF]);
+            EXCHANGE (AF, z80_state->alternates[Z80_AF]);
             break;
 
         }
 
         case EXX: {
 
-            EXCHANGE (BC, state->alternates[Z80_BC]);
-            EXCHANGE (DE, state->alternates[Z80_DE]);
-            EXCHANGE (HL, state->alternates[Z80_HL]);
+            EXCHANGE (BC, z80_state->alternates[Z80_BC]);
+            EXCHANGE (DE, z80_state->alternates[Z80_DE]);
+            EXCHANGE (HL, z80_state->alternates[Z80_HL]);
             break;
 
         }
@@ -1265,7 +1265,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 INC (x);
@@ -1302,7 +1302,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 DEC (x);
@@ -1447,7 +1447,7 @@ int Z80::emulate (
 
 #ifdef Z80_CATCH_HALT
 
-            state->status = Z80_STATUS_FLAG_HALT;
+            z80_state->status = Z80_STATUS_FLAG_HALT;
 
 #else
 
@@ -1469,11 +1469,11 @@ int Z80::emulate (
 
         case DI: {
 
-            state->iff1 = state->iff2 = 0;
+            z80_state->iff1 = z80_state->iff2 = 0;
 
 #ifdef Z80_CATCH_DI
 
-            state->status = Z80_STATUS_FLAG_DI;
+            z80_state->status = Z80_STATUS_FLAG_DI;
             goto stop_emulation;
 
 #else
@@ -1498,11 +1498,11 @@ int Z80::emulate (
 
         case EI: {
 
-            state->iff1 = state->iff2 = 1;
+            z80_state->iff1 = z80_state->iff2 = 1;
 
 #ifdef Z80_CATCH_EI
 
-            state->status = Z80_STATUS_FLAG_EI;
+            z80_state->status = Z80_STATUS_FLAG_EI;
             goto stop_emulation;
 
 #else
@@ -1524,15 +1524,15 @@ int Z80::emulate (
 
             if ((Y (opcode) & 0x03) <= 0x01)
 
-                state->im = Z80_INTERRUPT_MODE_0;
+                z80_state->im = Z80_INTERRUPT_MODE_0;
 
             else if (!(Y (opcode) & 1))
 
-                state->im = Z80_INTERRUPT_MODE_1;
+                z80_state->im = Z80_INTERRUPT_MODE_1;
 
             else
 
-                state->im = Z80_INTERRUPT_MODE_2;
+                z80_state->im = Z80_INTERRUPT_MODE_2;
 
             break;
 
@@ -1744,7 +1744,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 RLC (x);
@@ -1789,7 +1789,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 RL (x);
@@ -1833,7 +1833,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 RRC (x);
@@ -1877,7 +1877,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 RR_INSTRUCTION (x);
@@ -1921,7 +1921,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 SLA (x);
@@ -1965,7 +1965,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 SLL (x);
@@ -2009,7 +2009,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 SRA (x);
@@ -2053,7 +2053,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 SRL (x);
@@ -2136,7 +2136,7 @@ int Z80::emulate (
 
             int     d, x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 d = HL;
 
@@ -2183,7 +2183,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 x |= 1 << Y (opcode);
@@ -2227,7 +2227,7 @@ int Z80::emulate (
 
             int     x;
 
-            if (registers == state->register_table) {
+            if (registers == z80_state->register_table) {
 
                 READ_BYTE (HL, x);
                 x &= ~(1 << Y (opcode));
@@ -2470,24 +2470,24 @@ int Z80::emulate (
 
         case RETI_RETN: {
 
-            state->iff1 = state->iff2;
+            z80_state->iff1 = z80_state->iff2;
             POP (pc);
 
 #if defined(Z80_CATCH_RETI) && defined(Z80_CATCH_RETN)
 
-            state->status = opcode == OPCODE_RETI
+            z80_state->status = opcode == OPCODE_RETI
                 ? Z80_STATUS_FLAG_RETI
                 : Z80_STATUS_FLAG_RETN;
             goto stop_emulation;
 
 #elif defined(Z80_CATCH_RETI)
 
-            state->status = Z80_STATUS_FLAG_RETI;
+            z80_state->status = Z80_STATUS_FLAG_RETI;
             goto stop_emulation;
 
 #elif defined(Z80_CATCH_RETN)
 
-            state->status = Z80_STATUS_FLAG_RETN;
+            z80_state->status = Z80_STATUS_FLAG_RETN;
             goto stop_emulation;
 
 #else
@@ -2778,7 +2778,7 @@ int Z80::emulate (
             * prefixed by a 0xdd or 0xfd prefix.
             */
 
-            if (registers != state->register_table) {
+            if (registers != z80_state->register_table) {
 
                 r--;
 
@@ -2803,7 +2803,7 @@ int Z80::emulate (
 
         case DD_PREFIX: {
 
-            registers = state->dd_register_table;
+            registers = z80_state->dd_register_table;
 
 #ifdef Z80_PREFIX_FAILSAFE
 
@@ -2820,7 +2820,7 @@ int Z80::emulate (
             }
             else {
 
-                state->status = Z80_STATUS_PREFIX;
+                z80_state->status = Z80_STATUS_PREFIX;
                 pc--;
                 elapsed_cycles -= 4;
                 goto stop_emulation;
@@ -2839,7 +2839,7 @@ int Z80::emulate (
 
         case FD_PREFIX: {
 
-            registers = state->fd_register_table;
+            registers = z80_state->fd_register_table;
 
 #ifdef Z80_PREFIX_FAILSAFE
 
@@ -2852,7 +2852,7 @@ int Z80::emulate (
             }
             else {
 
-                state->status = Z80_STATUS_PREFIX;
+                z80_state->status = Z80_STATUS_PREFIX;
                 pc--;
                 elapsed_cycles -= 4;
                 goto stop_emulation;
@@ -2871,7 +2871,7 @@ int Z80::emulate (
 
         case ED_PREFIX: {
 
-            registers = state->register_table;
+            registers = z80_state->register_table;
             Z80_FETCH_BYTE (pc, opcode);
             pc++;
             instruction = ED_INSTRUCTION_TABLE[opcode];
@@ -2886,7 +2886,7 @@ int Z80::emulate (
 
 #ifdef Z80_CATCH_ED_UNDEFINED
 
-            state->status = Z80_STATUS_FLAG_ED_UNDEFINED;
+            z80_state->status = Z80_STATUS_FLAG_ED_UNDEFINED;
             pc -= 2;
             goto stop_emulation;
 
@@ -2912,8 +2912,8 @@ int Z80::emulate (
 
 stop_emulation:
 
-    state->r = (state->r & 0x80) | (r & 0x7f);
-    state->pc = pc & 0xffff;
+    z80_state->r = (z80_state->r & 0x80) | (r & 0x7f);
+    z80_state->pc = pc & 0xffff;
 
     return elapsed_cycles;
 }

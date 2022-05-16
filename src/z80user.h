@@ -36,7 +36,7 @@ extern "C" {
     *
     * All macros have access to the following three variables:
     *
-    *      state           Pointer to the current Z80_STATE. Because the
+    *      z80_state           Pointer to the current Z80_STATE. Because the
     *			instruction is currently executing, its members may not
     *			be fully up to date, depending on when the macro is
     *			called in the process. It is rather suggested to access
@@ -65,9 +65,9 @@ extern "C" {
     *      registers       Current register decoding table, use it to determine if
     * 			the current instruction is prefixed. It points on:
     *
-    *				state->dd_register_table for 0xdd prefixes;
-    *                      	state->fd_register_table for 0xfd prefixes;
-    *				state->register_table otherwise.
+    *				z80_state->dd_register_table for 0xdd prefixes;
+    *                      	z80_state->fd_register_table for 0xfd prefixes;
+    *				z80_state->register_table otherwise.
     *
     *      pc              Current PC register (upper bits are undefined), points
     *                      on the opcode, the displacement or constant to read for
@@ -129,7 +129,7 @@ extern "C" {
 
 #define Z80_INPUT_BYTE(port, x)                                         \
 {                                                                       \
-        state->registers.byte[Z80_A] = inputZ80(port);	                \
+        z80_state->registers.byte[Z80_A] = inputZ80(port);	                \
 }
 
 
@@ -140,7 +140,7 @@ extern "C" {
 
 #define Z80_CHECK_PC                                                    \
 {                                                                       \
-    state->pc = pc & 0xffff;                                            \
+    z80_state->pc = pc & 0xffff;                                            \
     switch (check_pcZ80())                                              \
     {                                                                   \
     case 1:                                                             \

@@ -60,7 +60,7 @@ extern "C"
 #include <stdlib.h>
 #include <time.h>
 
-typedef char u8;
+typedef unsigned char u8;
 typedef short u16;
 
 

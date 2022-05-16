@@ -11,7 +11,7 @@
 
 #define WORKRAM   0x02000
 
-#define state   (&(m_context.state))
+#define z80_state   (&(m_context.state))
 
 class Z80
 {
@@ -77,7 +77,7 @@ public:
         else
         {
             printf("!!! WriteRAM Attempted write at offset %04x with data "
-                "%02x failed.  PC = %04x\n", offset, data, state->pc);
+                "%02x failed.  PC = %04x\n", offset, data, z80_state->pc);
         }
 #endif
     }
@@ -96,7 +96,7 @@ public:
         else
         {
             printf("!!! WriteRAMW Attempted write at offset %04x with data "
-                "%02x failed.  PC = %04x\n", offset, data, state->pc);
+                "%02x failed.  PC = %04x\n", offset, data, z80_state->pc);
         }
 #endif
     }
